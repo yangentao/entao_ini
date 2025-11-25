@@ -1,6 +1,6 @@
 part of '../entao_ini.dart';
 
-IniFile parseIni(String text) {
+IniFile _parseIni(String text) {
   if (text.trim().isEmpty) return IniFile();
   Map<String, Map<String, String>> map = {};
   List<String> lines = _unescapeLines(const LineSplitter().convert(text));

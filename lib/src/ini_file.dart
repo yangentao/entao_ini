@@ -2,14 +2,14 @@ part of '../entao_ini.dart';
 
 /// https://en.wikipedia.org/wiki/INI_file
 class IniFile {
-  final Map<String, Map<String, String>> _all = {};
+  final Map<String, Map<String, String>> all = {};
 
-  bool get isEmpty => _all.isEmpty;
+  bool get isEmpty => all.isEmpty;
 
-  bool get isNoEmpty => _all.isNotEmpty;
+  bool get isNoEmpty => all.isNotEmpty;
 
   IniFile._({Map<String, Map<String, String>>? data}) {
-    if (data != null) _all.addAll(data);
+    if (data != null) all.addAll(data);
   }
 
   factory IniFile({Map<String, Map<String, String>>? data, File? file, Encoding encoding = utf8}) {
@@ -24,7 +24,7 @@ class IniFile {
   static IniFile? tryRead(File file, {Encoding encoding = utf8}) {
     try {
       String s = file.readAsStringSync(encoding: encoding);
-      return parseIni(s);
+      return _parseIni(s);
     } catch (e) {
       return null;
     }
@@ -32,16 +32,16 @@ class IniFile {
 
   static IniFile read(File file, {Encoding encoding = utf8}) {
     String s = file.readAsStringSync(encoding: encoding);
-    return parseIni(s);
+    return _parseIni(s);
   }
 
   static IniFile parse(String text) {
-    return parseIni(text);
+    return _parseIni(text);
   }
 
   List<IniItem> get items {
     List<IniItem> ls = [];
-    for (var e in _all.entries) {
+    for (var e in all.entries) {
       for (var ee in e.value.entries) {
         var item = IniItem(key: ee.key, value: ee.value, section: e.key);
         ls.add(item);
@@ -51,22 +51,22 @@ class IniFile {
   }
 
   /// default section is '', empty string.
-  List<String> get sections => _all.keys.toList();
+  List<String> get sections => all.keys.toList();
 
   List<String> keys({String section = ""}) {
-    return _all[section]?.keys.toList() ?? [];
+    return all[section]?.keys.toList() ?? [];
   }
 
   String? get(String key, {String section = ""}) {
-    return _all[section]?[key];
+    return all[section]?[key];
   }
 
   void put(String key, String value, {String section = ""}) {
-    Map<String, String>? m = _all[section];
+    Map<String, String>? m = all[section];
     if (m != null) {
       m[key] = value;
     } else {
-      _all[section] = {key: value};
+      all[section] = {key: value};
     }
   }
 
@@ -81,13 +81,13 @@ class IniFile {
 
   String toText() {
     StringBuffer buf = StringBuffer();
-    Map<String, String>? m = _all[""];
+    Map<String, String>? m = all[""];
     if (m != null) {
       for (MapEntry<String, String> kv in m.entries) {
         buf.writeln("${kv.key}=${kv.value}");
       }
     }
-    for (MapEntry<String, Map<String, String>> e in _all.entries) {
+    for (MapEntry<String, Map<String, String>> e in all.entries) {
       if (e.key.isEmpty) {
         continue;
       }

@@ -3,22 +3,10 @@ part of '../entao_ini.dart';
 IniFile parseIni(String text) {
   if (text.trim().isEmpty) return IniFile();
   Map<String, Map<String, String>> map = {};
-  List<String> lines = const LineSplitter().convert(text);
-  Iterator<String> it = lines.iterator;
-  String preLine = "";
-  bool multline = false;
-  while (it.moveNext()) {
-    String line = it.current;
-  }
+  List<String> lines = _unescapeLines(const LineSplitter().convert(text));
   String sec = "";
   for (String line in lines) {
-    final String ln;
-    int semiIdx = line.indexOf(";");
-    if (semiIdx >= 0) {
-      ln = line.substring(0, semiIdx).trim();
-    } else {
-      ln = line;
-    }
+    final String ln = line.trim();
 
     if (ln.length < 3) continue; //[a], a=1
     if (ln[0] == '[' && ln[ln.length - 1] == ']') {
@@ -28,7 +16,7 @@ IniFile parseIni(String text) {
     int idx = ln.indexOf('=');
     if (idx <= 0) continue;
     String k = ln.substring(0, idx).trim();
-    String v = ln.substring(idx + 1).trim();
+    String v = ln.substring(idx + 1).trim().unquoted;
     if (k.isEmpty) continue;
 
     Map<String, String>? m = map[sec];
@@ -45,31 +33,46 @@ List<String> _unescapeLines(List<String> lines) {
   List<String> ls = [];
   Iterator<String> it = lines.iterator;
   while (it.moveNext()) {
-    String line = it.current.unescapeIni;
+    String curLine = it.current;
     if (ls.isNotEmpty && ls.last.isNotEmpty) {
       String lastLine = ls.last;
-      if (lastLine.lastChar == BSLASH) {
-        ls[ls.length - 1] = "${lastLine.substring(0, lastLine.length - 1)}\n$line";
+      if (lastLine.length >= 2 && lastLine.codeUnitAt(lastLine.length - 1) == _BSLASH && lastLine.codeUnitAt(lastLine.length - 2) != _BSLASH) {
+        ls[ls.length - 1] = "${lastLine.substring(0, lastLine.length - 1)}\n$curLine";
         continue;
       }
     }
-    ls.add(line);
+    ls.add(curLine);
   }
-  return ls;
+  return ls.map((e) => e.unescapeIni).toList();
 }
 
-extension IniExt on String {
-  int? get lastChar => isEmpty ? null : codeUnitAt(length - 1);
+extension _IniExt on String {
+  // int? get lastChar => isEmpty ? null : codeUnitAt(length - 1);
+
+  String get unquoted {
+    if (length >= 2 && codeUnitAt(0) == _QUOTE && codeUnitAt(length - 1) == _QUOTE) {
+      return substring(1, length - 1);
+    }
+    return this;
+  }
 
   // TODO unicode , \xhhhh
   String get unescapeIni {
     int idx = indexOf('\\');
-    if (idx < 0) return this;
+    if (idx < 0) {
+      int semIdx = indexOf(";");
+      if (semIdx < 0) {
+        return this;
+      } else {
+        return substring(0, semIdx);
+      }
+    }
     StringBuffer buf = StringBuffer();
     List<int> codeList = codeUnits;
     for (int i = 0; i < codeList.length; ++i) {
       int code = codeList[i];
-      if (code != BSLASH) {
+      if (code == _SEMI) return buf.toString();
+      if (code != _BSLASH) {
         buf.writeCharCode(code);
         continue;
       }
@@ -79,11 +82,11 @@ extension IniExt on String {
       }
       int c2 = codeList[i + 1];
       switch (c2) {
-        case BSLASH: // \
-          buf.writeCharCode(BSLASH);
+        case _BSLASH: // \
+          buf.writeCharCode(_BSLASH);
           i += 1;
-        case QUOTE: // "
-          buf.writeCharCode(QUOTE);
+        case _QUOTE: // "
+          buf.writeCharCode(_QUOTE);
           i += 1;
         case 39: // '
           buf.writeCharCode(39);
@@ -128,18 +131,9 @@ extension IniExt on String {
   }
 }
 
-const List<int> _escapeChars = [BSLASH, APOS, QUOTE];
-// [
-const int LSQB = 91;
-
-/// \  0x5c
-const int BSLASH = 92;
-
-/// ]
-const int RSQB = 93;
-// '
-const int APOS = 39;
+// \
+const int _BSLASH = 92;
 // "
-const int QUOTE = 34;
+const int _QUOTE = 34;
 // ;
-const int SEMI = 59;
+const int _SEMI = 59;

@@ -1,0 +1,17 @@
+name: entao_ini
+description: ini file read and write.
+version: 1.0.0
+repository: https://github.com/yangentao/entao_ini
+homepage: https://github.com/yangentao/entao_ini
+
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+
+# Add regular dependencies here.
+dependencies:
+  # path: ^1.9.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

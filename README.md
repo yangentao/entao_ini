@@ -1,39 +1,36 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
-
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
-
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+## Ini file read and write
 
 ## Usage
+```ini
+host=google.com
+port = 8080 ; this is comment
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+[account]
+; this is another\
+comment
+type= "admin"
+user= entao \
+yang
 
-```dart
-const like = 'sample';
+[group]
+dept=dev
+desc= this is desc\;\n newline
 ```
 
-## Additional information
+```dart  
+  IniFile ini = IniFile.parse(s);
+  println(ini);
+  println();
+  ini.put("dept", "test", section: "group");
+  String out = ini.toString();
+  println(out);
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+  test("Ini file test", () {
+    expect("google.com", ini.get("host"));
+    expect("8080", ini.get("port"));
+    expect("entao \nyang", ini.get("user", section: "account"));
+    expect("admin", ini.get("type", section: "account"));
+    expect("test", ini.get("dept", section: "group"));
+    expect("this is desc;\n newline", ini.get("desc", section: "group"));
+  });
+```

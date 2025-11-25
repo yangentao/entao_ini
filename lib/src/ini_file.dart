@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:entao_dutil/src/collection.dart';
 import 'package:entao_dutil/src/strings.dart';
 
+/// https://en.wikipedia.org/wiki/INI_file
 class IniFile {
   Map<String, Map<String, String>> data;
 

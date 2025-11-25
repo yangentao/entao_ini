@@ -1,23 +1,47 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-
-import 'package:entao_dutil/src/collection.dart';
-import 'package:entao_dutil/src/strings.dart';
+part of '../entao_ini.dart';
 
 /// https://en.wikipedia.org/wiki/INI_file
 class IniFile {
-  Map<String, Map<String, String>> data;
+  final Map<String, Map<String, String>> _all = {};
 
-  bool get isEmpty => data.isEmpty;
+  bool get isEmpty => _all.isEmpty;
 
-  bool get isNoEmpty => data.isNotEmpty;
+  bool get isNoEmpty => _all.isNotEmpty;
 
-  IniFile([Map<String, Map<String, String>>? m]) : data = m ?? {};
+  IniFile._({Map<String, Map<String, String>>? data}) {
+    if (data != null) _all.addAll(data);
+  }
+
+  factory IniFile({Map<String, Map<String, String>>? data, File? file, Encoding encoding = utf8}) {
+    assert(data == null || file == null);
+    if (file != null) {
+      return read(file, encoding: encoding);
+    } else {
+      return IniFile._(data: data);
+    }
+  }
+
+  static IniFile? tryRead(File file, {Encoding encoding = utf8}) {
+    try {
+      String s = file.readAsStringSync(encoding: encoding);
+      return parseIni(s);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static IniFile read(File file, {Encoding encoding = utf8}) {
+    String s = file.readAsStringSync(encoding: encoding);
+    return parseIni(s);
+  }
+
+  static IniFile parse(String text) {
+    return parseIni(text);
+  }
 
   List<IniItem> get items {
     List<IniItem> ls = [];
-    for (var e in data.entries) {
+    for (var e in _all.entries) {
       for (var ee in e.value.entries) {
         var item = IniItem(key: ee.key, value: ee.value, section: e.key);
         ls.add(item);
@@ -26,72 +50,44 @@ class IniFile {
     return ls;
   }
 
+  /// default section is '', empty string.
+  List<String> get sections => _all.keys.toList();
+
+  List<String> keys({String section = ""}) {
+    return _all[section]?.keys.toList() ?? [];
+  }
+
   String? get(String key, {String section = ""}) {
-    return data[section]?[key];
+    return _all[section]?[key];
   }
 
   void put(String key, String value, {String section = ""}) {
-    data.getOrPut(section, () => {})[key] = value;
+    Map<String, String>? m = _all[section];
+    if (m != null) {
+      m[key] = value;
+    } else {
+      _all[section] = {key: value};
+    }
   }
 
   void putItem(IniItem item) {
     put(item.key, item.value, section: item.section);
   }
 
-  static IniFile? tryRead(File file) {
-    try {
-      String s = file.readAsStringSync();
-      return parse(s);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  static IniFile read(File file) {
-    String s = file.readAsStringSync();
-    return parse(s);
-  }
-
-  static IniFile parse(String text, {String comment = ";"}) {
-    Map<String, Map<String, String>> map = {};
-    List<String> lines = text.splitLines();
-    String sec = "";
-    for (String line in lines) {
-      final String ln;
-      if (comment.isNotEmpty) {
-        ln = line.substringBefore(comment).trim();
-      } else {
-        ln = line.trim();
-      }
-      if (ln.length < 3) continue; //[a], a=1
-      if (ln[0] == '[' && ln[ln.length - 1] == ']') {
-        sec = ln.substring(1, ln.length - 1).trim();
-        continue;
-      }
-      int idx = ln.indexOf('=');
-      if (idx <= 0) continue;
-      String k = ln.substring(0, idx).trim();
-      String v = ln.substring(idx + 1).trim();
-      if (k.isEmpty) continue;
-      map.getOrPut(sec, () => {})[k] = v;
-    }
-    return IniFile(map);
-  }
-
-  void write(File file) {
+  void write(File file, {Encoding encoding = utf8}) {
     String text = toText();
-    file.writeAsStringSync(text);
+    file.writeAsStringSync(text, flush: true, encoding: encoding);
   }
 
   String toText() {
     StringBuffer buf = StringBuffer();
-    Map<String, String>? m = data[""];
+    Map<String, String>? m = _all[""];
     if (m != null) {
       for (MapEntry<String, String> kv in m.entries) {
         buf.writeln("${kv.key}=${kv.value}");
       }
     }
-    for (MapEntry<String, Map<String, String>> e in data.entries) {
+    for (MapEntry<String, Map<String, String>> e in _all.entries) {
       if (e.key.isEmpty) {
         continue;
       }
@@ -124,23 +120,5 @@ class IniItem {
 
   String toText() {
     return "$key=$value";
-  }
-}
-
-extension _FileExt on File {
-  String? readText({Encoding encoding = utf8}) {
-    try {
-      return this.readAsStringSync(encoding: encoding);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Uint8List? readBytes() {
-    try {
-      return this.readAsBytesSync();
-    } catch (e) {
-      return null;
-    }
   }
 }

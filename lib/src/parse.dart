@@ -15,14 +15,14 @@ class IniParser {
       switch (ch) {
         case CharCode.LSQB:
           String sec = _parseSection();
-          section = _unescapeIni(sec).unquoted;
+          section = sec.iniUnescaped.unquoted;
         case CharCode.SEMI:
           _parseComment();
         // print("Comment: ${_unescapeIni(comment).unquoted}");
         default:
           MapEntry<String, String> e = _parseKeyValue();
-          String key = _unescapeIni(e.key).unquoted;
-          String value = _unescapeIni(e.value).unquoted;
+          String key = e.key.iniUnescaped.unquoted;
+          String value = e.value.iniUnescaped.unquoted;
           iniFile.put(key, value, section: section);
       }
       _scanner.skipWhites();
@@ -55,15 +55,18 @@ class IniParser {
   }
 }
 
-String _unescapeIni(String s) {
-  return unescapeCharCodes(s.codeUnits, map: _ini_escapes, unicodeChars: const [CharCode.u, CharCode.U, CharCode.x, CharCode.X]);
+extension on String {
+  String get iniEscaped => escapeText(this, map: _iniUnescapes, escapeUnicode: false);
+
+  String get iniUnescaped => unescapeText(this, map: _ini_escapes, unicodeChars: const [CharCode.u, CharCode.U, CharCode.x, CharCode.X]);
 }
 
+final Map<int, int> _iniUnescapes = _ini_escapes.map((k, v) => MapEntry(v, k));
 const Map<int, int> _ini_escapes = {
   CharCode.BSLASH: CharCode.BSLASH,
   CharCode.SQUOTE: CharCode.SQUOTE,
   CharCode.QUOTE: CharCode.QUOTE,
-  CharCode.NUL: CharCode.NUL,
+  CharCode.NUM0: CharCode.NUL,
   CharCode.BEL: CharCode.BEL,
   CharCode.b: CharCode.BS,
   CharCode.t: CharCode.HTAB,

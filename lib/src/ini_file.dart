@@ -84,16 +84,16 @@ class IniFile {
     Map<String, String>? m = all[""];
     if (m != null) {
       for (MapEntry<String, String> kv in m.entries) {
-        buf.writeln("${kv.key}=${kv.value}");
+        buf.writeln("${kv.key.iniEscaped}=${kv.value.iniEscaped}");
       }
     }
     for (MapEntry<String, Map<String, String>> e in all.entries) {
       if (e.key.isEmpty) {
         continue;
       }
-      buf.writeln("[${e.key}]");
+      buf.writeln("[${e.key.iniEscaped}]");
       for (MapEntry<String, String> kv in e.value.entries) {
-        buf.writeln("${kv.key}=${kv.value}");
+        buf.writeln("${kv.key.iniEscaped}=${kv.value.iniEscaped}");
       }
     }
     return buf.toString();

@@ -5,3 +5,5 @@
 * use TextScanner to parse ini file.
 ## 1.0.2
 * escape values when to text.
+## 1.0.3
+* raw String value.

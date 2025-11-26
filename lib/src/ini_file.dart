@@ -24,7 +24,7 @@ class IniFile {
   static IniFile? tryRead(File file, {Encoding encoding = utf8}) {
     try {
       String s = file.readAsStringSync(encoding: encoding);
-      return _parseIni(s);
+      return parse(s);
     } catch (e) {
       return null;
     }
@@ -32,11 +32,11 @@ class IniFile {
 
   static IniFile read(File file, {Encoding encoding = utf8}) {
     String s = file.readAsStringSync(encoding: encoding);
-    return _parseIni(s);
+    return parse(s);
   }
 
   static IniFile parse(String text) {
-    return _parseIni(text);
+    return IniParser(text).parse();
   }
 
   List<IniItem> get items {

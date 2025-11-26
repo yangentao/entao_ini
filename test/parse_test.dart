@@ -1,29 +1,26 @@
-## Ini file read and write
+import 'package:entao_ini/entao_ini.dart';
+import 'package:test/test.dart';
 
-## Usage
-```ini
-host=google.com
-port = 8080 ; this is comment
+void main() {
+  String s = """
+  host=google.com
+  port = 8080 ; this is comment
+  [account]
+  ; this is another\\
+   comment
+  type= "admin"
+  user="entao \\
+yang"
+  [group]
+  dept=dev
+  desc= this is desc\\;\\n newline
+  """;
 
-[account]
-; this is another\
-comment
-type= "admin"
-user= entao \
-yang
-
-[group]
-dept=dev
-desc= this is desc\;\n newline
-```
-
-```dart  
-  IniFile ini = IniFile.parse(s);
-  println(ini);
-  println();
+  IniParser p = IniParser(s);
+  IniFile ini = p.parse();
   ini.put("dept", "test", section: "group");
   String out = ini.toString();
-  println(out);
+  print(out);
 
   test("Ini file test", () {
     expect(ini.get("host"), "google.com");
@@ -33,4 +30,4 @@ desc= this is desc\;\n newline
     expect(ini.get("dept", section: "group"), "test");
     expect(ini.get("desc", section: "group"), "this is desc;\n newline");
   });
-```
+}

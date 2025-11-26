@@ -11,7 +11,8 @@ class IniParser {
     _scanner.skipWhites();
     String section = "";
     while (!_scanner.isEnd) {
-      int ch = _scanner.nowChar;
+      int? ch = _scanner.nowChar;
+      if (ch == null) break;
       switch (ch) {
         case CharCode.LSQB:
           String sec = _parseSection();
@@ -54,7 +55,8 @@ class IniParser {
     if (_scanner.isEnd) {
       return MapEntry(key, "");
     }
-    int ch = _scanner.nowChar;
+    int? ch = _scanner.nowChar;
+    if (ch == null) return MapEntry(key, "");
     if (ch == CharCode.QUOTE) {
       _scanner.expectChar(CharCode.QUOTE);
       List<int> valueBuf = _scanner.moveUntilChar(CharCode.QUOTE, escapeChar: CharCode.BSLASH);

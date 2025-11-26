@@ -9,7 +9,7 @@ void main() {
   ; this is another\\
    comment
   type= "admin"
-  user="entao \\
+  user="entao 
 yang"
   [group]
   dept=dev

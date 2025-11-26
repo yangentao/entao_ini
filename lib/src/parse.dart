@@ -15,14 +15,13 @@ class IniParser {
       switch (ch) {
         case CharCode.LSQB:
           String sec = _parseSection();
-          section = sec.iniUnescaped.unquoted;
+          section = sec.iniUnescaped;
         case CharCode.SEMI:
           _parseComment();
-        // print("Comment: ${_unescapeIni(comment).unquoted}");
         default:
           MapEntry<String, String> e = _parseKeyValue();
-          String key = e.key.iniUnescaped.unquoted;
-          String value = e.value.iniUnescaped.unquoted;
+          String key = e.key.iniUnescaped;
+          String value = e.value.iniUnescaped;
           iniFile.put(key, value, section: section);
       }
       _scanner.skipWhites();
@@ -49,9 +48,27 @@ class IniParser {
   MapEntry<String, String> _parseKeyValue() {
     List<int> keyBuf = _scanner.moveUntilChar(CharCode.EQUAL, escapeChar: CharCode.BSLASH);
     _scanner.expectChar(CharCode.EQUAL);
-    List<int> valueBuf = _scanner.moveUntil(const [CharCode.CR, CharCode.LF, CharCode.SEMI], escapeChar: CharCode.BSLASH);
-    _scanner.skipCrLf();
-    return MapEntry(String.fromCharCodes(keyBuf).trim(), String.fromCharCodes(valueBuf).trim());
+    _scanner.skipSpTab();
+    if (keyBuf.isEmpty) _scanner.raise();
+    String key = String.fromCharCodes(keyBuf).trim();
+    if (_scanner.isEnd) {
+      return MapEntry(key, "");
+    }
+    int ch = _scanner.nowChar;
+    if (ch == CharCode.QUOTE) {
+      _scanner.expectChar(CharCode.QUOTE);
+      List<int> valueBuf = _scanner.moveUntilChar(CharCode.QUOTE, escapeChar: CharCode.BSLASH);
+      if (!_scanner.isEnd) {
+        _scanner.expectChar(CharCode.QUOTE);
+      }
+      String value = String.fromCharCodes(valueBuf); // NO trim, return raw string in "..."
+      return MapEntry(key, value);
+    } else {
+      List<int> valueBuf = _scanner.moveUntil(const [CharCode.CR, CharCode.LF, CharCode.SEMI], escapeChar: CharCode.BSLASH);
+      _scanner.skipCrLf();
+      String value = String.fromCharCodes(valueBuf).trim();
+      return MapEntry(key, value);
+    }
   }
 }
 

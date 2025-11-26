@@ -8,7 +8,7 @@ class IniParser {
 
   IniFile parse() {
     IniFile iniFile = IniFile();
-    _scanner.skipSpaceTabCrLf();
+    _scanner.skipWhites();
     String section = "";
     while (!_scanner.isEnd) {
       int ch = _scanner.nowChar;
@@ -25,14 +25,14 @@ class IniParser {
           String value = _unescapeIni(e.value).unquoted;
           iniFile.put(key, value, section: section);
       }
-      _scanner.skipSpaceTabCrLf();
+      _scanner.skipWhites();
     }
     return iniFile;
   }
 
   String _parseSection() {
     _scanner.expectChar(CharCode.LSQB);
-    _scanner.skipSpaceTab();
+    _scanner.skipSpTab();
     List<int> buf = _scanner.moveUntilChar(CharCode.RSQB, escapeChar: CharCode.BSLASH);
     _scanner.expectChar(CharCode.RSQB);
     if (buf.isEmpty) _scanner.raise();

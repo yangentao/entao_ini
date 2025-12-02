@@ -3,18 +3,18 @@ import 'package:println/println.dart';
 import 'package:test/test.dart';
 
 void main() {
-  String s = """
+  String s = r"""
   host=google.com
   port = 8080 ; this is comment
   [account]
-  ; this is another\\
+  ; this is another\
    comment
   type= "admin"
-  user="entao \\
+  user="entao \
 yang"
   [group]
   dept=dev
-  desc= this is desc\\;\\n newline
+  desc= this is desc\;\n newline
   """;
   IniFile ini = IniFile.parse(s);
   println(ini);

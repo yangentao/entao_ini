@@ -16,13 +16,13 @@ class IniParser {
       switch (ch) {
         case CharCode.LSQB:
           String sec = _parseSection();
-          section = sec.iniUnescaped;
+          section = sec.unescapeIni;
         case CharCode.SEMI:
           _parseComment();
         default:
           MapEntry<String, String> e = _parseKeyValue();
-          String key = e.key.iniUnescaped;
-          String value = e.value.iniUnescaped;
+          String key = e.key.unescapeIni;
+          String value = e.value.unescapeIni;
           iniFile.put(key, value, section: section);
       }
       _scanner.skipWhites();
@@ -75,13 +75,13 @@ class IniParser {
 }
 
 extension on String {
-  String get iniEscaped => escapeText(this, map: _iniUnescapes, escapeUnicode: false);
+  String get escapeIni => escapeText(this, map: _escapeChars, escapeUnicode: false);
 
-  String get iniUnescaped => unescapeText(this, map: _ini_escapes, unicodeChars: const [CharCode.u, CharCode.U, CharCode.x, CharCode.X]);
+  String get unescapeIni => unescapeText(this, map: _unescapeChars, unicodeChars: const [CharCode.u, CharCode.U, CharCode.x, CharCode.X]);
 }
 
-final Map<int, int> _iniUnescapes = _ini_escapes.map((k, v) => MapEntry(v, k));
-const Map<int, int> _ini_escapes = {
+final Map<int, int> _escapeChars = _unescapeChars.map((k, v) => MapEntry(v, k));
+const Map<int, int> _unescapeChars = {
   CharCode.BSLASH: CharCode.BSLASH,
   CharCode.SQUOTE: CharCode.SQUOTE,
   CharCode.QUOTE: CharCode.QUOTE,

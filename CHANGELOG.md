@@ -7,3 +7,5 @@
 * escape values when to text.
 ## 1.0.3
 * raw String value.
+## 1.0.5
+* update entao_dutil package
